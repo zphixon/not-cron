@@ -24,6 +24,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 
 [[package]]
+name = "black-dwarf"
+version = "0.1.0"
+source = "git+https://github.com/zphixon/black-dwarf.git#c2160d5134de88eb53bc7adc53f617218ff4f2fd"
+dependencies = [
+ "indexmap",
+]
+
+[[package]]
 name = "cc"
 version = "1.0.79"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -150,6 +158,7 @@ checksum = "2dffe52ecf27772e601905b7522cb4ef790d2cc203488bbd0e2fe85fcb74566d"
 name = "not-cron"
 version = "0.1.0"
 dependencies = [
+ "black-dwarf",
  "env_logger",
  "humantime",
  "indexmap",

@@ -1,8 +1,6 @@
 use std::io::prelude::*;
 use std::time::Duration;
 
-mod toml;
-
 struct Job {
     cmd: Vec<String>,
     freq: Duration,
@@ -27,7 +25,7 @@ fn attempt() -> Result<(), String> {
     )
     .map_err(|_| "can't read config file")?;
 
-    let toml = toml::parse(&config_file).map_err(|_| String::from("invalid toml"))?;
+    let toml = black_dwarf::toml::parse(&config_file).map_err(|_| String::from("invalid toml"))?;
 
     let mut jobs = Vec::new();
     for job in toml
@@ -36,7 +34,7 @@ fn attempt() -> Result<(), String> {
         .as_list()
         .ok_or_else(|| String::from("`job` must be an array"))?
     {
-        let toml::Value::Array { values: cmd, .. }
+        let black_dwarf::toml::Value::Array { values: cmd, .. }
             = job.get("cmd").ok_or_else(|| String::from("`job` must have `cmd`"))?
         else {
             panic!("`job.cmd` must be array of strings");
@@ -49,7 +47,7 @@ fn attempt() -> Result<(), String> {
         }
         let cmd = cmd.iter().map(|el| el.as_str().unwrap().into()).collect();
 
-        let toml::Value::String { value: freq, .. }
+        let black_dwarf::toml::Value::String { value: freq, .. }
             = job.get("every").ok_or_else(|| String::from("`job` must have `every`"))?
         else {
             panic!("`job.every` must be string");

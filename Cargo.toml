@@ -10,3 +10,4 @@ indexmap = '*'
 humantime = '*'
 log = '*'
 env_logger = '*'
+black-dwarf = { git = 'https://github.com/zphixon/black-dwarf.git' }
