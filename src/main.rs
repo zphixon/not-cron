@@ -1,9 +1,11 @@
+use std::collections::HashMap;
 use std::io::prelude::*;
 use std::time::Duration;
 
 struct Job {
     cmd: Vec<String>,
     freq: Duration,
+    envs: HashMap<String, String>,
     logfile: Option<String>,
 }
 
@@ -37,20 +39,20 @@ fn attempt() -> Result<(), String> {
         let black_dwarf::toml::Value::Array { values: cmd, .. }
             = job.get("cmd").ok_or_else(|| String::from("`job` must have `cmd`"))?
         else {
-            panic!("`job.cmd` must be array of strings");
+            return Err("`job.cmd` must be array of strings".into());
         };
         if !cmd.iter().all(|el| el.is_str()) {
-            panic!("`job.cmd` must be array of strings");
+            return Err("`job.cmd` must be array of strings".into());
         }
         if cmd.is_empty() {
-            panic!("`job.cmd` must have at least one element");
+            return Err("`job.cmd` must have at least one element".into());
         }
         let cmd = cmd.iter().map(|el| el.as_str().unwrap().into()).collect();
 
         let black_dwarf::toml::Value::String { value: freq, .. }
             = job.get("every").ok_or_else(|| String::from("`job` must have `every`"))?
         else {
-            panic!("`job.every` must be string");
+            return Err("`job.every` must be string".into());
         };
 
         let freq = *freq
@@ -67,7 +69,27 @@ fn attempt() -> Result<(), String> {
             })
             .transpose()?;
 
-        jobs.push(Job { cmd, freq, logfile });
+        let mut envs: HashMap<String, String> = Default::default();
+        if let Some(with_env) = job.get("with-env") {
+            if !with_env.is_table() {
+                return Err("`job.with-env` must be table with string values".into());
+            }
+
+            for (k, v) in with_env.iter_kvs() {
+                if !v.is_str() {
+                    return Err("`job.with-env` must be table with string values".into());
+                }
+                let v = v.as_str().unwrap();
+                envs.insert(k.into(), v.into());
+            }
+        }
+
+        jobs.push(Job {
+            cmd,
+            freq,
+            envs,
+            logfile,
+        });
     }
 
     let handles = jobs
@@ -81,6 +103,7 @@ fn attempt() -> Result<(), String> {
                 cmd.stdout(std::process::Stdio::piped());
                 cmd.stderr(std::process::Stdio::piped());
                 cmd.stdin(std::process::Stdio::null());
+                cmd.envs(job.envs.iter());
 
                 loop {
                     log::info!("starting {:?}", cmd);

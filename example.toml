@@ -1,0 +1,6 @@
+[[job]]
+with-env = {
+    BITTE = 'DANKE'
+}
+every = '3 seconds'
+cmd = ['bash', '-c', 'echo $BITTE']
